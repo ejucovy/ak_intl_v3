@@ -137,7 +137,7 @@ actionkit.forms.initForm('act');
 	{% endif %}
 	{% if templateset.custom_fields.site_footer_menu %}
 		<div class="footer-custom-links">
-			{{ templateset.custom_fields.site_footer_menu }}
+			{% include_tmpl templateset.custom_fields.site_footer_menu %}
 		</div>
 	{% else %}
 			 &nbsp;&nbsp; <a href="{% filter ak_text:"footer_about" %}https://350.org/how{% endfilter %}">{% filter ak_text:"footer_about" %}About{% endfilter %}</a> /{% ifequal page.type "Donation" %} {% else %} <a
