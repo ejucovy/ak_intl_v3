@@ -6,7 +6,8 @@ Custom template for same-page post-AJAX submit share ask.
 
 {% if page.custom_fields.after_action_next_step != "page-redirect" %}
 
-<div id="afteraction-share" class="section title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;"></div>
+<div id="afteraction-share" class="section afteraction-panel title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;"></div>
+<div id="afteraction-donate" class="section afteraction-panel title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;"></div>
 
 <script>
 jQuery(document).ready(function($){
