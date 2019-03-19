@@ -6,13 +6,89 @@ Custom template for same-page post-AJAX submit share ask.
 
 {% if page.custom_fields.after_action_next_step != "page-redirect" %}
 
-<div id="afteraction-share" class="section afteraction-panel title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;"></div>
-<div id="afteraction-donate" class="section afteraction-panel title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;"></div>
+<div id="afteraction-share" class="section afteraction-panel border-top title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;">
+	<div id="afteraction-share-inner" class="section-inner"></div>
+</div>
+<div id="afteraction-donate" class="section afteraction-panel border-top title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;">
+	<div id="afteraction-donate-inner" class="section-inner"></div>
+</div>
+
+
+<div id="afteraction-share-ask-source" aria-hidden="true" style="display:none;">
+	<div class="afteraction-share-ask-intro text-style-lead3 text-large3 text-lineheight-small text-strong margin-bottom-large">
+	{% if page.custom_fields.share_slide_title %}
+		<h2>{{ page.custom_fields.share_slide_title }}</h2>
+	{% endif %}
+	{% if page.custom_fields.share_slide_body %}
+		<p>{{ page.custom_fields.share_slide_body }}</p>
+	{% else %}
+		<p>{% include_tmpl form.thank_you_text %}</p>
+	{% endif %}
+		<p>
+	{% if page.custom_fields.afteraction_share_ask %}
+		{{ page.custom_fields.afteraction_share_ask }}
+	{% else %}
+		{% filter ak_text:"afteraction_share_ask" %}Can you share this with your network?{% endfilter %}
+	{% endif %}
+		</p>
+		<p>
+			<button class="afteraction-share-ask-yes button button-large">Share it!</button>
+			<button class="afteraction-share-ask-no button button-large">No</button>
+		</p>
+	</div>
+</div>
+
+<div id="afteraction-share-source" aria-hidden="true" style="display:none;">
+	<div class="afteraction-share-intro text-style-lead3 text-large3 text-lineheight-small text-strong margin-bottom-large">
+
+	</div>
+
+	<div class="fb-preview bg-white border">
+{% if page.followup.share_image_value %}
+		<div class="fb-preview-share-image image-link-parent">
+			<img src="{{ page.followup.share_image_value }}">
+		</div>
+{% endif %}
+		<div class="fb-preview-share-text- padding-tiny text-left">
+			<p class="fb-preview-share-title- strong margin-bottom-small">{{ page.followup.share_title_value }}</p>
+			<p class="fb-preview-share-description- text-small">{{ page.followup.share_description_value }}</p>
+			<p class="text-small2 text-font-secondary text-caps">350.org</p>
+		</div>
+	</div>
+	<div>
+			<a id="afteraction-share-button" class="afteraction-share-button fb-share button button-share-facebook button-big arrow-right"  href="/share/link?type=fb&amp;page_name={{page.name}}&amp;action_id={{action.id}}&amp;akid={{akid}}">{% filter ak_text:"general_share_on_fb" %}Share on Facebook{% endfilter %}</a>
+	</div>
+</div>
+
+<div id="afteraction-donate-ask-source" aria-hidden="true" style="display:none;">
+	<p class="afteraction-donate-ask-intro text-large2">
+		{% if page.custom_fields.afteraction_donate_ask %}
+			{{ page.custom_fields.afteraction_donate_ask }}
+		{% else %}
+			{% filter ak_text:"afteraction_donate_ask" %}Donate to support actions like this one.{% endfilter %}
+		{% endif %}
+	</p>
+	<p>
+		<a class="afteraction-donate-ask-yes button button-large" href="https://350.org/donate">I can donate</a>
+		<a class="afteraction-donate-ask-no button button-large" href="https://350.org">Not now</a>
+	</p>
+</div>
 
 <script>
 jQuery(document).ready(function($){
 	/* only run the AJAX submission if we're sure this is an AK-hosted page */
 	if ( $('html').hasClass('ak-hosted') ){
+		// set up variables for various slides
+		var afteractionShareSlide = $('#afteraction-share');
+		var afteractionShareSlideInner = $('#afteraction-share-inner');
+		var afteractionShareAskContent = $('#afteraction-share-ask-source').html();
+		var afteractionShareContent = $('#afteraction-share-source').html();
+
+		var afteractionDonateSlide = $('#afteraction-donate');
+		var afteractionDonateSlideInner = $('#afteraction-donate-inner');
+		var afteractionDonateAskContent = $('#afteraction-donate-ask-source').html();
+		var afteractionDonateContent = $('#afteraction-donate-source').html();
+
 		/* handle form submissison */
 		$('#action-form').submit(function (e) {
 			e.preventDefault();
@@ -26,17 +102,47 @@ jQuery(document).ready(function($){
 					})
 					.done(function(msg) {
 						ga('send', 'event', 'scrolling-signup', 'signup', window.location.pathname);
-						var shareSlide = $('#afteraction-share');
-						var shareSlideContent = $('#afteraction-share-source').html();
-						shareSlide.append( shareSlideContent );
-						shareSlide.show();
-						$('html, body').animate({
-							scrollTop: shareSlide.offset().top
-						}, 800);
 						$(document).trigger('domUpdated'); // tell other scripts to re-run
 						if (typeof fbq === "function") {
 							fbq('track', 'CompleteRegistration');
 						}
+						// on form submit, show the share ask
+						if ( afteractionShareSlideInner.html() == '' ){
+							afteractionShareSlideInner.append( afteractionShareAskContent )
+							afteractionShareSlide.show();
+						}
+						$('html, body').animate({
+							scrollTop: afteractionShareSlide.offset().top
+						}, 800);
+
+						// if user opts to share, scroll to share dialog
+						$('.afteraction-share-ask-yes').on('click', function(){
+							afteractionShareSlideInner
+								.animate({opacity:0 }, 300, function(){
+									$(this)
+										.empty()
+										.append( afteractionShareContent )
+										.animate({opacity:1}, 300);
+								});
+							$('html, body').animate({
+								scrollTop: afteractionShareSlide.offset().top
+							}, 800);
+							$(document).trigger('domUpdated');
+						});
+						// if user opts not to share or has completed sharing, scroll to donate ask
+						$('.afteraction-share-ask-no, .afteraction-share-button').on('click', function(){
+							afteractionDonateSlide.show();
+							afteractionDonateSlideInner.animate({opacity:0 }, 300, function(){
+								$(this)
+									.empty()
+									.append( afteractionDonateAskContent )
+									.animate({opacity:1}, 300);
+							});
+							$('html, body').animate({
+								scrollTop: afteractionDonateSlide.offset().top
+							}, 800);
+							$(document).trigger('domUpdated');
+						});
 					})
 					.fail(function(){
 							console.log('Error: AK AJAX submission failed.');
@@ -52,37 +158,5 @@ jQuery(document).ready(function($){
 });
 </script>
 
-<div id="afteraction-share-source" aria-hidden="true" style="display:none;">
-
-	<div class="section-inner">
-		<div class="afteraction-share-intro text-style-lead3 text-large3 text-lineheight-small text-strong margin-bottom-large">
-		{% if page.custom_fields.share_slide_title %}
-			<h2>{{ page.custom_fields.share_slide_title }}</h2>
-		{% endif %}
-		{% if page.custom_fields.share_slide_body %}
-			<p>{{ page.custom_fields.share_slide_body }}</p>
-		{% else %}
-			<p>{% include_tmpl form.thank_you_text %}</p>
-		{% endif %}
-			<p>
-				<a id="afteraction-share-button" class="fb-share button button-share-facebook button-big arrow-right"  href="/share/link?type=fb&amp;page_name={{page.name}}&amp;action_id={{action.id}}&amp;akid={{akid}}">{% filter ak_text:"general_share_on_fb" %}Share on Facebook{% endfilter %}</a>
-			</p>
-		</div>
-
-		{% if page.followup.share_image_value %}
-		<div class="fb-preview bg-white border">
-			<div class="fb-preview-share-image image-link-parent">
-				<img src="{{ page.followup.share_image_value }}">
-			</div>
-			<div class="fb-preview-share-text- padding-tiny text-left">
-				<p class="fb-preview-share-title- strong margin-bottom-small">{{ page.followup.share_title_value }}</p>
-				<p class="fb-preview-share-description- text-small">{{ page.followup.share_description_value }}</p>
-				<p class="text-small2 text-font-secondary text-caps">350.org</p>
-			</div>
-		</div>
-		{% endif %}
-	</div>
-
-</div>
 
 {% endif %}
