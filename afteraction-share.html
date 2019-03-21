@@ -43,11 +43,13 @@ Custom template for same-page post-AJAX submit share ask.
 	</span>
 </div>
 
-<div id="afteraction-share" class="section afteraction-panel border-top title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;">
-	<div id="afteraction-share-inner" class="section-inner"></div>
-</div>
-<div id="afteraction-donate" class="section afteraction-panel border-top title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;">
-	<div id="afteraction-donate-inner" class="section-inner"></div>
+<div id="afteraction">
+	<div id="afteraction-share" class="section afteraction-panel border-top title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;">
+		<div id="afteraction-share-inner" class="section-inner"></div>
+	</div>
+	<div id="afteraction-donate" class="section afteraction-panel border-top title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;">
+		<div id="afteraction-donate-inner" class="section-inner"></div>
+	</div>
 </div>
 
 
@@ -102,7 +104,7 @@ Custom template for same-page post-AJAX submit share ask.
 		{% if page.custom_fields.afteraction_donate_ask %}
 			{{ page.custom_fields.afteraction_donate_ask }}
 		{% else %}
-			{% filter ak_text:"afteraction_donate_ask" %}Finally, can you chip in to help stop climate change and create a more just, prosperous world? The power behind our movement comes from thousands of people like you — donate in two minutes now.{% endfilter %}
+			{% filter ak_text:"afteraction_donate_ask" %}Can you chip in to help stop climate change and create a more just, prosperous world? The power behind our movement comes from thousands of people like you — donate in two minutes now.{% endfilter %}
 		{% endif %}
 	</p>
 	<p>
@@ -118,6 +120,7 @@ jQuery(document).ready(function($){
 		// set up variables
 		var afteractionProgressMeter = $("#afteraction-progress-meter");
 
+		var afteraction = $("#afteraction");
 		var afteractionShareSlide = $('#afteraction-share');
 		var afteractionShareSlideInner = $('#afteraction-share-inner');
 		var afteractionShareAskContent = $('#afteraction-share-ask-source').html();
@@ -128,20 +131,76 @@ jQuery(document).ready(function($){
 		var afteractionDonateAskContent = $('#afteraction-donate-ask-source').html();
 		var afteractionDonateContent = $('#afteraction-donate-source').html();
 
-		// re-set new window pop-up
-		afteractionShareSlide.on('click','.afteraction-share-button', function(e){
+		function afteractionShowShareAsk(){
+			if ( afteractionShareSlideInner.html() == '' ){
+				afteractionShareSlideInner.append( afteractionShareAskContent )
+				afteractionShareSlide.show();
+			}
+			$('html, body').animate({
+				scrollTop: afteractionShareSlide.offset().top
+			}, 800);
+			afteractionProgressMeter.fadeIn();
+			$(document).trigger('domUpdated'); // tell other scripts to re-run
+		}
+
+		function afteractionShowShare(){
+			afteractionShareSlideInner
+				.animate({opacity:0 }, 300, function(){
+					$(this)
+						.empty()
+						.append( afteractionShareContent )
+						.animate({opacity:1}, 300);
+					$(document).trigger('domUpdated');
+					$('html, body').animate({
+						scrollTop: afteractionShareSlide.offset().top
+					}, 800);
+				});
+		};
+
+		function afteractionShowDonate(){
+			afteractionDonateSlide.show();
+			afteractionDonateSlideInner.animate({opacity:0 }, 300, function(){
+				$(this)
+					.empty()
+					.append( afteractionDonateAskContent )
+					.animate({opacity:1}, 300);
+					$(document).trigger('domUpdated');
+					$('html, body').animate({
+						scrollTop: afteractionDonateSlide.offset().top
+					}, 800);
+			});
+			if ( $(this).hasClass('afteraction-share-ask-no') ){
+				$("#afteraction-progress-meter-step2 .afteraction-progress-meter-dot")
+					.removeClass('complete')
+					.addClass('declined')
+					.attr('data-icon',''); //&xE943; X
+			} else {
+				$("#afteraction-progress-meter-step2 .afteraction-progress-meter-dot")
+					.removeClass('declined')
+					.addClass('complete')
+					.attr('data-icon',''); //&xE942; checkmark
+			}
+		};
+
+		// re-set facebook share window pop-up
+		afteraction.on('click','.button-share-facebook', function(e){
 			e.preventDefault();
 			var destination = jQuery(this).attr('href');
 			popupWidth = 520;
 			popupHeight = 350;
+			// center the pop-up on the screen
 			var winTop = (screen.height / 2) - (popupHeight / 2);
 			var winLeft = (screen.width / 2) - (popupWidth / 2);
 			window.open( destination , 'new-window-popup', 'top=' + winTop + ',left=' + winLeft + ',toolbar=0,status=0,resizable=yes,scrollbars=yes,width=' + popupWidth + ',height=' + popupHeight );
+			// send Google Analytics event
+			ga('send', 'event', 'scrolling-signup', 'share-facebook', window.location.pathname);
 		});
 
-		/* handle form submissison */
+		/* When the main form is submitted... */
 		$('#action-form').submit(function (e) {
+			// don't redirect to standard thank you page
 			e.preventDefault();
+			// wait 150ms for... some reason? idk, i forget
 			setTimeout(function() {
 				// if no errors...
 				if( $(".ak-err li").length < 1) {
@@ -151,62 +210,21 @@ jQuery(document).ready(function($){
 						data: $('#action-form').serialize()
 					})
 					.done(function(msg) {
-						// send FB and google events
+						// send google analytics event
 						ga('send', 'event', 'scrolling-signup', 'signup', window.location.pathname);
+						// send FB tracker event
 						if (typeof fbq === "function") {
 							fbq('track', 'CompleteRegistration');
 						}
-						// on form submit, show the share ask
-						if ( afteractionShareSlideInner.html() == '' ){
-							afteractionShareSlideInner.append( afteractionShareAskContent )
-							afteractionShareSlide.show();
-						}
-						$('html, body').animate({
-							scrollTop: afteractionShareSlide.offset().top
-						}, 800);
-						afteractionProgressMeter.fadeIn();
-						$(document).trigger('domUpdated'); // tell other scripts to re-run
-
-						// if user opts to share, scroll to share dialog
+						// show the share ask
+						afteractionShowShareAsk();
+						// if user opts to share, show share dialog
 						$('.afteraction-share-ask-yes').on('click', function(){
-							afteractionShareSlideInner
-								.animate({opacity:0 }, 300, function(){
-									$(this)
-										.empty()
-										.append( afteractionShareContent )
-										.animate({opacity:1}, 300);
-								});
-							$('html, body').animate({
-								scrollTop: afteractionShareSlide.offset().top
-							}, 800);
-							$(document).trigger('domUpdated');
+							afteractionShowShare();
 						});
-						// if user opts not to share or has completed sharing, scroll to donate ask
-						$('.afteraction-share-ask-no, .afteraction-share-button').on('click', '', function(){
-							afteractionDonateSlide.show();
-							afteractionDonateSlideInner.animate({opacity:0 }, 300, function(){
-								$(this)
-									.empty()
-									.append( afteractionDonateAskContent )
-									.animate({opacity:1}, 300);
-							});
-
-
-							$('html, body').animate({
-								scrollTop: afteractionDonateSlide.offset().top
-							}, 800);
-							if ( $(this).hasClass('afteraction-share-ask-no') ){
-								$("#afteraction-progress-meter-step2 .afteraction-progress-meter-dot")
-									.removeClass('complete')
-									.addClass('declined')
-									.attr('data-icon',''); //&xE943; X
-							} else {
-								$("#afteraction-progress-meter-step2 .afteraction-progress-meter-dot")
-									.removeClass('declined')
-									.addClass('complete')
-									.attr('data-icon',''); //&xE942; checkmark
-							}
-							$(document).trigger('domUpdated');
+						// if user opts not to share or has completed sharing, show donate ask
+						afteraction.on('click','.afteraction-share-ask-no, .afteraction-share-button', function(){
+							afteractionShowDonate();
 						});
 					})
 					.fail(function(){
@@ -216,9 +234,6 @@ jQuery(document).ready(function($){
 			}, 150);
 		});
 	}
-	$('.afteraction-share-button').on('click', function(e){
-		ga('send', 'event', 'scrolling-signup', 'share-facebook', window.location.pathname);
-	});
 });
 </script>
 
