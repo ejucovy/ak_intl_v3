@@ -128,6 +128,17 @@ jQuery(document).ready(function($){
 		var afteractionDonateAskContent = $('#afteraction-donate-ask-source').html();
 		var afteractionDonateContent = $('#afteraction-donate-source').html();
 
+		// re-set new window pop-up
+		afteractionShareSlide.on('click','.afteraction-share-button', function(e){
+			e.preventDefault();
+			var destination = jQuery(this).attr('href');
+			popupWidth = 520;
+			popupHeight = 350;
+			var winTop = (screen.height / 2) - (popupHeight / 2);
+			var winLeft = (screen.width / 2) - (popupWidth / 2);
+			window.open( destination , 'new-window-popup', 'top=' + winTop + ',left=' + winLeft + ',toolbar=0,status=0,resizable=yes,scrollbars=yes,width=' + popupWidth + ',height=' + popupHeight );
+		});
+
 		/* handle form submissison */
 		$('#action-form').submit(function (e) {
 			e.preventDefault();
@@ -179,16 +190,7 @@ jQuery(document).ready(function($){
 									.append( afteractionDonateAskContent )
 									.animate({opacity:1}, 300);
 							});
-							// re-set new window pop-up
-							afteractionShareSlide.on('click','.afteraction-share-button', function(e){
-								e.preventDefault();
-								var destination = jQuery(this).attr('href');
-								popupWidth = 520;
-								popupHeight = 350;
-								var winTop = (screen.height / 2) - (popupHeight / 2);
-								var winLeft = (screen.width / 2) - (popupWidth / 2);
-								window.open( destination , 'new-window-popup', 'top=' + winTop + ',left=' + winLeft + ',toolbar=0,status=0,resizable=yes,scrollbars=yes,width=' + popupWidth + ',height=' + popupHeight );
-							});
+
 
 							$('html, body').animate({
 								scrollTop: afteractionDonateSlide.offset().top
