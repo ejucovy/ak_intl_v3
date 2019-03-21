@@ -6,6 +6,40 @@ Custom template for same-page post-AJAX submit share ask.
 
 {% if page.custom_fields.after_action_next_step != "page-redirect" %}
 
+<style>
+	.afteraction-progress-meter-step{
+		margin:0 0.6em;}
+	.afteraction-progress-meter-dot{
+		align-items:center;
+		border:2px solid rgba(255,255,255,0.7);
+		border-radius:2em;
+		display:inline-block;
+		display:inline-flex;
+		height:1.4em;
+		justify-content:center;
+		margin-right:0.25em;
+		vertical-align:bottom;
+		width:1.4em;}
+	.afteraction-progress-meter-dot.complete{
+		border-color:#29ce31;
+		background-color:#29ce31;}
+	.afteraction-progress-meter-dot.declined{
+		border-color:transparent;
+		background-color:rgba(255,255,255,0.4);}
+</style>
+
+<div id="afteraction-progress-meter" aria-hidden="true" class="section text-small text-strong width-wide text-center padding-tiny bg-dkgray-trans" style="display:none;position:fixed;top:0;left:0;width:100%;z-index:10;">
+	<span id="afteraction-progress-meter-step1" class="afteraction-progress-meter-step">
+		<span class="afteraction-progress-meter-dot complete icon" data-icon="&#xE942;"></span> Sign</span>
+	</span>
+	<span id="afteraction-progress-meter-step2" class="afteraction-progress-meter-step">
+		<span class="afteraction-progress-meter-dot icon" data-icon=""></span> Share</span>
+	</span>
+	<span id="afteraction-progress-meter-step3" class="afteraction-progress-meter-step">
+		<span class="afteraction-progress-meter-dot icon" data-icon=""></span> Donate</span>
+	</span>
+</div>
+
 <div id="afteraction-share" class="section afteraction-panel border-top title-section padding-medium width-narrow text-center bg-{% if page.custom_fields.page_background_color %}{{ page.custom_fields.page_background_color }}{% else %}white{% endif %}" aria-live="polite" style="display:none;">
 	<div id="afteraction-share-inner" class="section-inner"></div>
 </div>
@@ -28,35 +62,35 @@ Custom template for same-page post-AJAX submit share ask.
 	{% if page.custom_fields.afteraction_share_ask %}
 		{{ page.custom_fields.afteraction_share_ask }}
 	{% else %}
-		{% filter ak_text:"afteraction_share_ask" %}Can you share this with your network?{% endfilter %}
+		{% filter ak_text:"afteraction_share_ask" %}Will you share this to get more people involved?{% endfilter %}
 	{% endif %}
 		</p>
 		<p>
-			<button class="afteraction-share-ask-yes button button-large">Share it!</button>
-			<button class="afteraction-share-ask-no button button-large">No</button>
+			<button class="afteraction-share-ask-yes button button-large">{% filter ak_text:"afteraction_share_ask_yes" %}Yes, I can share this{% endfilter %}</button>
+			<button class="afteraction-share-ask-no button button-large">{% filter ak_text:"afteraction_share_ask_no" %}No, not now{% endfilter %}</button>
 		</p>
 	</div>
 </div>
 
 <div id="afteraction-share-source" aria-hidden="true" style="display:none;">
 	<div class="afteraction-share-intro text-style-lead3 text-large3 text-lineheight-small text-strong margin-bottom-large">
-
+		<p>{% filter ak_text:"afteraction_share_instructions" %}Thank you — Click below to share:{% endfilter %}</p>
 	</div>
 
-	<div class="fb-preview bg-white border">
+	<div class="fb-preview bg-white border margin-bottom-large">
 {% if page.followup.share_image_value %}
 		<div class="fb-preview-share-image image-link-parent">
 			<img src="{{ page.followup.share_image_value }}">
 		</div>
 {% endif %}
-		<div class="fb-preview-share-text- padding-tiny text-left">
+		<div class="fb-preview-share-text padding-tiny text-left">
 			<p class="fb-preview-share-title- strong margin-bottom-small">{{ page.followup.share_title_value }}</p>
 			<p class="fb-preview-share-description- text-small">{{ page.followup.share_description_value }}</p>
 			<p class="text-small2 text-font-secondary text-caps">350.org</p>
 		</div>
 	</div>
 	<div>
-			<a id="afteraction-share-button" class="afteraction-share-button fb-share button button-share-facebook button-big arrow-right"  href="/share/link?type=fb&amp;page_name={{page.name}}&amp;action_id={{action.id}}&amp;akid={{akid}}">{% filter ak_text:"general_share_on_fb" %}Share on Facebook{% endfilter %}</a>
+		<a class="afteraction-share-button fb-share button button-share-facebook button-big arrow-right"  href="/share/link?type=fb&amp;page_name={{page.name}}&amp;action_id={{action.id}}&amp;akid={{akid}}">{% filter ak_text:"general_share_on_fb" %}Share on Facebook{% endfilter %}</a>
 	</div>
 </div>
 
@@ -65,7 +99,7 @@ Custom template for same-page post-AJAX submit share ask.
 		{% if page.custom_fields.afteraction_donate_ask %}
 			{{ page.custom_fields.afteraction_donate_ask }}
 		{% else %}
-			{% filter ak_text:"afteraction_donate_ask" %}Donate to support actions like this one.{% endfilter %}
+			{% filter ak_text:"afteraction_donate_ask" %}Finally, can you chip in to help stop climate change and create a more just, prosperous world? The power behind our movement comes from thousands of people like you — donate in two minutes now.{% endfilter %}
 		{% endif %}
 	</p>
 	<p>
@@ -78,7 +112,9 @@ Custom template for same-page post-AJAX submit share ask.
 jQuery(document).ready(function($){
 	/* only run the AJAX submission if we're sure this is an AK-hosted page */
 	if ( $('html').hasClass('ak-hosted') ){
-		// set up variables for various slides
+		// set up variables
+		var afteractionProgressMeter = $("#afteraction-progress-meter");
+
 		var afteractionShareSlide = $('#afteraction-share');
 		var afteractionShareSlideInner = $('#afteraction-share-inner');
 		var afteractionShareAskContent = $('#afteraction-share-ask-source').html();
@@ -114,6 +150,7 @@ jQuery(document).ready(function($){
 						$('html, body').animate({
 							scrollTop: afteractionShareSlide.offset().top
 						}, 800);
+						afteractionProgressMeter.fadeIn();
 
 						// if user opts to share, scroll to share dialog
 						$('.afteraction-share-ask-yes').on('click', function(){
@@ -141,6 +178,17 @@ jQuery(document).ready(function($){
 							$('html, body').animate({
 								scrollTop: afteractionDonateSlide.offset().top
 							}, 800);
+							if ( $(this).hasClass('afteraction-share-ask-no') ){
+								$("#afteraction-progress-meter-step2 .afteraction-progress-meter-dot")
+									.removeClass('complete')
+									.addClass('declined')
+									.attr('data-icon',''); //&xE943; X
+							} else {
+								$("#afteraction-progress-meter-step2 .afteraction-progress-meter-dot")
+									.removeClass('declined')
+									.addClass('complete')
+									.attr('data-icon',''); //&xE942; checkmark
+							}
 							$(document).trigger('domUpdated');
 						});
 					})
@@ -151,8 +199,7 @@ jQuery(document).ready(function($){
 			}, 150);
 		});
 	}
-	$('#afteraction-share-button').on('click', function(e){
-		e.preventDefault();
+	$('.afteraction-share-button').on('click', function(e){
 		ga('send', 'event', 'scrolling-signup', 'share-facebook', window.location.pathname);
 	});
 });
