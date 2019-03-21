@@ -7,6 +7,9 @@ Custom template for same-page post-AJAX submit share ask.
 {% if page.custom_fields.after_action_next_step != "page-redirect" %}
 
 <style>
+	[aria-hidden="true"] {
+  	display:none;}
+
 	.afteraction-progress-meter-step{
 		margin:0 0.6em;}
 	.afteraction-progress-meter-dot{
@@ -48,7 +51,7 @@ Custom template for same-page post-AJAX submit share ask.
 </div>
 
 
-<div id="afteraction-share-ask-source" aria-hidden="true" style="display:none;">
+<div id="afteraction-share-ask" aria-hidden="true">
 	<div class="afteraction-share-ask-intro text-style-lead3 text-large3 text-lineheight-small text-strong margin-bottom-large">
 	{% if page.custom_fields.share_slide_title %}
 		<h2>{{ page.custom_fields.share_slide_title }}</h2>
@@ -137,8 +140,8 @@ jQuery(document).ready(function($){
 						data: $('#action-form').serialize()
 					})
 					.done(function(msg) {
+						// send FB and google events
 						ga('send', 'event', 'scrolling-signup', 'signup', window.location.pathname);
-						$(document).trigger('domUpdated'); // tell other scripts to re-run
 						if (typeof fbq === "function") {
 							fbq('track', 'CompleteRegistration');
 						}
@@ -151,6 +154,7 @@ jQuery(document).ready(function($){
 							scrollTop: afteractionShareSlide.offset().top
 						}, 800);
 						afteractionProgressMeter.fadeIn();
+						$(document).trigger('domUpdated'); // tell other scripts to re-run
 
 						// if user opts to share, scroll to share dialog
 						$('.afteraction-share-ask-yes').on('click', function(){
@@ -167,7 +171,7 @@ jQuery(document).ready(function($){
 							$(document).trigger('domUpdated');
 						});
 						// if user opts not to share or has completed sharing, scroll to donate ask
-						$('.afteraction-share-ask-no').on('click', function(){
+						$('.afteraction-share-ask-no, .afteraction-share-button').on('click', '', function(){
 							afteractionDonateSlide.show();
 							afteractionDonateSlideInner.animate({opacity:0 }, 300, function(){
 								$(this)
@@ -175,6 +179,17 @@ jQuery(document).ready(function($){
 									.append( afteractionDonateAskContent )
 									.animate({opacity:1}, 300);
 							});
+							// re-set new window pop-up
+							afteractionShareSlide.on('click','.afteraction-share-button', function(e){
+								e.preventDefault();
+								var destination = jQuery(this).attr('href');
+								popupWidth = 520;
+								popupHeight = 350;
+								var winTop = (screen.height / 2) - (popupHeight / 2);
+								var winLeft = (screen.width / 2) - (popupWidth / 2);
+								window.open( destination , 'new-window-popup', 'top=' + winTop + ',left=' + winLeft + ',toolbar=0,status=0,resizable=yes,scrollbars=yes,width=' + popupWidth + ',height=' + popupHeight );
+							});
+
 							$('html, body').animate({
 								scrollTop: afteractionDonateSlide.offset().top
 							}, 800);
