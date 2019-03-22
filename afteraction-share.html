@@ -132,6 +132,7 @@ jQuery(document).ready(function($){
 		var afteractionDonateContent = $('#afteraction-donate-source').html();
 
 		function afteractionShowShareAsk(){
+			$('#jump-to-form").remove();
 			if ( afteractionShareSlideInner.html() == '' ){
 				afteractionShareSlideInner.append( afteractionShareAskContent )
 				afteractionShareSlide.show();
@@ -157,7 +158,7 @@ jQuery(document).ready(function($){
 				});
 		};
 
-		function afteractionShowDonate(){
+		function afteractionShowDonate(el){
 			afteractionDonateSlide.show();
 			afteractionDonateSlideInner.animate({opacity:0 }, 300, function(){
 				$(this)
@@ -169,7 +170,7 @@ jQuery(document).ready(function($){
 						scrollTop: afteractionDonateSlide.offset().top
 					}, 800);
 			});
-			if ( $(this).hasClass('afteraction-share-ask-no') ){
+			if ( $(el).hasClass('afteraction-share-ask-no') ){
 				$("#afteraction-progress-meter-step2 .afteraction-progress-meter-dot")
 					.removeClass('complete')
 					.addClass('declined')
@@ -223,8 +224,8 @@ jQuery(document).ready(function($){
 							afteractionShowShare();
 						});
 						// if user opts not to share or has completed sharing, show donate ask
-						afteraction.on('click','.afteraction-share-ask-no, .afteraction-share-button', function(){
-							afteractionShowDonate();
+						afteraction.on('click','.afteraction-share-ask-no, .afteraction-share-button', function(el){
+							afteractionShowDonate(el);
 						});
 					})
 					.fail(function(){
