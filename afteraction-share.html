@@ -5,6 +5,7 @@ Custom template for same-page post-AJAX submit share ask.
 {% load actionkit_tags %}
 
 {% if page.custom_fields.after_action_next_step != "page-redirect" %}
+	{% if page.lang.iso_code = "en" %}
 
 <style>
 	[aria-hidden="true"] {
@@ -110,7 +111,7 @@ Custom template for same-page post-AJAX submit share ask.
 	</p>
 	<p>
 		<a class="afteraction-donate-ask-yes button button-large margin-bottom-large" href="https://350.org/donate">I can donate</a>
-		<a class="afteraction-donate-ask-no button button-large margin-bottom-large" href="https://350.org">Not now</a>
+		<a class="afteraction-donate-ask-no button button-large margin-bottom-large" href="https://350.org/get-involved">Not now</a>
 	</p>
 </div>
 
@@ -240,5 +241,5 @@ jQuery(document).ready(function($){
 });
 </script>
 
-
+	{% endif %}
 {% endif %}
