@@ -71,8 +71,8 @@ Custom template for same-page post-AJAX submit share ask.
 	{% endif %}
 		</p>
 		<p>
-			<button class="afteraction-share-ask-yes button button-large">{% filter ak_text:"afteraction_share_ask_yes" %}Yes, I can share this{% endfilter %}</button>
-			<button class="afteraction-share-ask-no button button-large">{% filter ak_text:"afteraction_share_ask_no" %}No, not now{% endfilter %}</button>
+			<button class="afteraction-share-ask-yes button button-large margin-bottom-large">{% filter ak_text:"afteraction_share_ask_yes" %}Yes, I can share this{% endfilter %}</button>
+			<button class="afteraction-share-ask-no button button-large margin-bottom-large">{% filter ak_text:"afteraction_share_ask_no" %}No, not now{% endfilter %}</button>
 		</p>
 	</div>
 </div>
@@ -108,8 +108,8 @@ Custom template for same-page post-AJAX submit share ask.
 		{% endif %}
 	</p>
 	<p>
-		<a class="afteraction-donate-ask-yes button button-large" href="https://350.org/donate">I can donate</a>
-		<a class="afteraction-donate-ask-no button button-large" href="https://350.org">Not now</a>
+		<a class="afteraction-donate-ask-yes button button-large margin-bottom-large" href="https://350.org/donate">I can donate</a>
+		<a class="afteraction-donate-ask-no button button-large margin-bottom-large" href="https://350.org">Not now</a>
 	</p>
 </div>
 
@@ -224,7 +224,8 @@ jQuery(document).ready(function($){
 							afteractionShowShare();
 						});
 						// if user opts not to share or has completed sharing, show donate ask
-						afteraction.on('click','.afteraction-share-ask-no, .afteraction-share-button', function(el){
+						afteraction.on('click','.afteraction-share-ask-no, .afteraction-share-button', function(){
+							var el = $(this);
 							afteractionShowDonate(el);
 						});
 					})
